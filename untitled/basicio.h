@@ -2,6 +2,7 @@
 #define BASICIO_H
 
 #include <string>
+using namespace std;
 class basicio
 {
 public:

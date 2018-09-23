@@ -5,7 +5,7 @@ basicio::basicio()
 
 }
 
-void basicio::CreateExternalFiles()
+void basicio::CreateExternalFile()
 {
 
 }
