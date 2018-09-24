@@ -1,6 +1,7 @@
 #include "ma_filter.h"
 #include "ma_filter_private.h"
 #include <QFile>
+#include <math.h>
 // we have to write the private data into a header so the moc do the procssing about it
 #define EST_FILEPATH "LongTermEst.dat"
 MA_Filter::MA_Filter(QObject *parent) : QObject(parent)
@@ -47,17 +48,12 @@ void MA_Filter::filter_g(GyroData &data){
     this->g_estimation.GyroY = this->g_comprassion[4].processNewValue(data.GyroY);
     this->g_estimation.GyroZ = this->g_comprassion[5].processNewValue(data.GyroZ);
 
-    data.AccelX -= this->g_estimation.AccelX;
-    data.AccelY -= this->g_estimation.AccelY;
-    data.AccelZ -= this->g_estimation.AccelZ;
-    data.GyroX -= this->g_estimation.GyroX;
-    data.GyroY -= this->g_estimation.GyroY;
-    data.GyroZ -= this->g_estimation.GyroZ;
 }
 
 void MA_Filter::updateInput(GyroData data){
     this->filter_layer_1(data);
     this->filter_g(data);
     print_GyroData(data);
+    emit this->updatedOutput(data.AccelZ-this->g_estimation.AccelZ + data.AccelX - this->g_estimation.AccelX);
 
 }
