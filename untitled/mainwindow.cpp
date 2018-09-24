@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "strokedetector.h"
 
 #include <QString>
 #include <QStringList>
@@ -44,7 +44,10 @@ MainWindow::MainWindow(QWidget *parent) :
     UpdateTrainingsdauer = new QTimer(this);
     connect(UpdateTrainingsdauer, SIGNAL(timeout()),this, SLOT(UpdateMeasurementTrainingsdauer()));
 
+    StrokeDetector *str = new StrokeDetector(this);// Qt will delete Strokedetector on shutdown hopefully
+    connect(str,SIGNAL(StrokeUpdate()),this,SLOT(on_spm_update()));
 }
+
 
 MainWindow::~MainWindow()
 {
@@ -136,4 +139,10 @@ void MainWindow::on_pB_Off_clicked()
     // sudo shutdown -r
 
 
+}
+
+// SPM ANZEIG
+
+void MainWindow::on_spm_update(quint8 spm){
+    this->ui->lab_Data_topleft->setText(QString::number(spm));
 }
