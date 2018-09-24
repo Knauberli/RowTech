@@ -54,6 +54,11 @@ void MA_Filter::updateInput(GyroData data){
     this->filter_layer_1(data);
     this->filter_g(data);
     print_GyroData(data);
-    emit this->updatedOutput(data.AccelZ-this->g_estimation.AccelZ + data.AccelX - this->g_estimation.AccelX);
+    GyroData ret;
+    // genterate the vector to the driven direction without the gravity
+    ret.AccelX = data.AccelX - this->g_estimation.AccelX;
+    ret.AccelZ = data.AccelZ-this->g_estimation.AccelZ;
+    // calculate the value of the vetor
+    emit this->updatedOutput( sqrt(pow(ret.AccelX,2) + pow(ret.AccelZ,2)));
 
 }
