@@ -37,7 +37,7 @@ void MA_Filter::filter_layer_1(GyroData &data){
     data.GyroX = this->priv[3].processNewValue(data.GyroX);
     data.GyroY = this->priv[4].processNewValue(data.GyroY);
     data.GyroZ = this->priv[5].processNewValue(data.GyroZ);
-    print_GyroData(data);
+    //print_GyroData(data);
 }
 
 void MA_Filter::filter_g(GyroData &data){
@@ -53,12 +53,18 @@ void MA_Filter::filter_g(GyroData &data){
 void MA_Filter::updateInput(GyroData data){
     this->filter_layer_1(data);
     this->filter_g(data);
-    print_GyroData(data);
+    //print_GyroData(data);
     GyroData ret;
     // genterate the vector to the driven direction without the gravity
-    ret.AccelX = data.AccelX - this->g_estimation.AccelX;
+    ret.AccelY = data.AccelY - this->g_estimation.AccelY;
     ret.AccelZ = data.AccelZ-this->g_estimation.AccelZ;
     // calculate the value of the vetor
-    emit this->updatedOutput( sqrt(pow(ret.AccelX,2) + pow(ret.AccelZ,2)));
+    //qDebug() << sqrt(pow(ret.AccelY,2) + pow(ret.AccelZ,2));
+    qreal erg = sqrt(pow(ret.AccelY,2) + pow(ret.AccelZ,2));
+    // if the y vertor is negative we got an acceration into the wrong direction
+
+    if(ret.AccelY < 0 )
+        erg *= -1;
+    emit this->updatedOutput(erg);
 
 }
