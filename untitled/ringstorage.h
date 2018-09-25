@@ -24,7 +24,10 @@ public:
     ~RingStorage(){
         delete this->storage_;
         delete this->lock;
-    }   
+    }
+    unsigned int size(){
+        return max_size;
+    }
 
     bool empty(){
         return (!full_ && (tail == head));
