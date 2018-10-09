@@ -1,7 +1,0 @@
-#ifndef PUBLIC_VARIABLES_H
-#define PUBLIC_VARIABLES_H
-
-
-
-#endif // PUBLIC_VARIABLES_H
-
