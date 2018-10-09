@@ -4,6 +4,11 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QString>
+#include <QStringList>
+#include <QApplication>
+#include <QDateTime>
+#include "test.h"
 
 namespace Ui {
 class MainWindow;
@@ -41,8 +46,6 @@ private slots:
     void on_pB_StopTraining_clicked();
 
     void on_pB_Off_clicked();
-
-    void on_spm_update(quint8 spm);
 
 private:
     Ui::MainWindow *ui;

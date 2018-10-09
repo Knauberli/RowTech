@@ -1,13 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "strokedetector.h"
-
-#include <QString>
-#include <QStringList>
-#include <QApplication>
-#include <QDateTime>
-
-#include <QDebug>
+#include "test.h"
 
 // Werte für ComboBoxen
 // Müssen in txt Datei ausgelagert werden --> Dann können mehrere Nutzer hinzugefügt werden
@@ -39,16 +32,17 @@ MainWindow::MainWindow(QWidget *parent) :
     this->ui->comboBox_5->setCurrentIndex(1);
     this->ui->comboBox_6->setCurrentIndex(1);
 
+
+
     // Timer um Trainingsdauer zu Updaten
 
     UpdateTrainingsdauer = new QTimer(this);
     connect(UpdateTrainingsdauer, SIGNAL(timeout()),this, SLOT(UpdateMeasurementTrainingsdauer()));
 
-    StrokeDetector *str = new StrokeDetector(this);// Qt will delete Strokedetector on shutdown hopefully
-    connect(str,SIGNAL(StrokeUpdate(quint8)),this,SLOT(on_spm_update(quint8)));
-    qDebug() << "MainWindow create";
-}
+    test *neu = new test;
 
+
+}
 
 MainWindow::~MainWindow()
 {
@@ -140,11 +134,4 @@ void MainWindow::on_pB_Off_clicked()
     // sudo shutdown -r
 
 
-}
-
-// SPM ANZEIG
-
-void MainWindow::on_spm_update(quint8 spm){
-    qDebug() << "Update Spm";
-    this->ui->lab_Data_topleft->setText(QString::number(spm));
 }

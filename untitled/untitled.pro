@@ -27,26 +27,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    basicio.cpp \
-    gyrosensor.cpp \
-    gyrosensorprivate.cpp \
-    ma_filter.cpp \
-    ma_filter_private.cpp \
-    strokedetector.cpp
+    test.cpp
 
 HEADERS += \
         mainwindow.h \
-    basicio.h \
-    defines.h \
-    gyrosensor.h \
-    gyrosensorprivate.h \
-    ma_filter.h \
-    ma_filter_private.h \
-    ringstorage.h \
-    strokedetector.h
+    test.h
 
 FORMS += \
         mainwindow.ui
-
-DISTFILES += \
-    koef.dat
