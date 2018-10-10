@@ -1,6 +1,6 @@
 #include "test.h"
 
-
+void super();
 
 test::test()
 {

@@ -1,7 +1,7 @@
 #ifndef TEST_H
 #define TEST_H
 
-#include <Qdir>
+#include <QDir>
 #include <QFile>
 #include <QDebug>
 
