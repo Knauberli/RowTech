@@ -32,7 +32,8 @@ SOURCES += \
     gyrosensorprivate.cpp \
     ma_filter.cpp \
     ma_filter_private.cpp \
-    strokedetector.cpp
+    strokedetector.cpp \
+    gravityfilter.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -43,7 +44,8 @@ HEADERS += \
     ma_filter.h \
     ma_filter_private.h \
     ringstorage.h \
-    strokedetector.h
+    strokedetector.h \
+    gravityfilter.h
 
 FORMS += \
         mainwindow.ui
