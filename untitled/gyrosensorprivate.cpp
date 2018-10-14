@@ -18,16 +18,19 @@
 #include <errno.h>
 #include <string.h>
 
+#include "gravityfilter.h"
 GyroSensorPrivate::GyroSensorPrivate(QObject *parent) : QObject(parent)
 {
     this->SetupI2C();
+    this->gv = new GravityFilter(this);
+    this->gv->setCuttoff(0.5);
+    this->gv->setSampleFrequency(200);
 }
 GyroSensorPrivate::GyroSensorPrivate(QString devFilepath, QObject *parent):QObject(parent){
     this->filePath = devFilepath;
     this->SetupI2C();
 }
 GyroSensorPrivate::~GyroSensorPrivate(){
-
 }
 bool GyroSensorPrivate::isReady(){
     if(this->state_ == READY){
@@ -66,12 +69,17 @@ void GyroSensorPrivate::SetupI2C(){
     // set the sensivity to +/- 4 g
     buffer[0] = REG_ACCEL_CONFIG ;
     buffer[1] = 0 | (1 << 3);
-    // Sensor power on
-    buffer[0] = REG_PWR_MGMT_1,
-    buffer[1]=0;
+    write(this->filedescriptor,buffer,2);
+/*
+    // enable fifo for reading
+    buffer[0] = REG_FIFO_EN;
+    buffer[1] = 0 | (1 << 3);
     write(this->filedescriptor,buffer,2);
 
-
+    buffer[0] = REG_USER_CTRL;
+    buffer[1] = 0 | (1 << 6);
+    write(this->filedescriptor,buffer,2);
+*/
     uchar gyroConfig = this->getRegisterValue(REG_GYRO_CONFIG)&0x17;
     switch (gyroConfig) {
     case 0x00:
@@ -91,7 +99,9 @@ void GyroSensorPrivate::SetupI2C(){
         break;
     }
 
-    uchar accelConfig = this->getRegisterValue(REG_ACCEL_CONFIG)&0x17;
+    uchar accelConfig = this->getRegisterValue(REG_ACCEL_CONFIG);
+    qDebug() << "AccelConfig " << QString::number(accelConfig,16);
+    accelConfig &= 0x17;
     switch (accelConfig) {
     case 0x00:
         this->AccelFactor = ACCEL_SHORT_TO_DOUBLE_FACTOR_0;
@@ -109,6 +119,10 @@ void GyroSensorPrivate::SetupI2C(){
         break;
     }
     qDebug() << "Accel Factor is set to " << this->AccelFactor << "\n GyroFactor is set to " << this->GyroFactor;
+    // Sensor power on
+    buffer[0] = REG_PWR_MGMT_1,
+    buffer[1]=0;
+    write(this->filedescriptor,buffer,2);
     this->state_ = READY;
 
 }
@@ -137,6 +151,7 @@ _GyroData GyroSensorPrivate::readData(){
         qInfo() << "Bus is in Error State";
         return retdata;
     }
+
     /* GET all Accelormeter Values form the REgisters */
     accelx = this->getRegisterValue(REG_ACCEL_XOUT_L);
     accelx |= this->getRegisterValue(REG_ACCEL_XOUT_H)<< 8;
@@ -161,8 +176,8 @@ _GyroData GyroSensorPrivate::readData(){
     retdata.GyroY = gyroy ;
     retdata.GyroZ = gyroz ;
     this->calculateRelativeValues(&retdata);
-
-    //print_GyroData(retdata);
+    this->gv->filterGravity(retdata);
+    print_GyroData(retdata);
 
     return retdata;
 }
@@ -187,4 +202,12 @@ void GyroSensorPrivate::calculateRelativeValues(struct _GyroData *data){
     data->GyroY = (data->GyroY / this->GyroFactor);
     data->GyroZ = (data->GyroZ / this->GyroFactor);
 
+}
+uchar* GyroSensorPrivate::readBurstDataFifo(){
+    uchar* data= nullptr;
+    quint16 fifocount = this->getRegisterValue(REG_FIFO_COUNT_H) << 8;
+    fifocount |= this->getRegisterValue(REG_FIFO_COUNT_L);
+    data = new uchar[fifocount];
+    read(this->filedescriptor,data,fifocount);
+    return data;
 }

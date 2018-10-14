@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(UpdateTrainingsdauer, SIGNAL(timeout()),this, SLOT(UpdateMeasurementTrainingsdauer()));
 
     StrokeDetector *str = new StrokeDetector(this);// Qt will delete Strokedetector on shutdown hopefully
-    connect(str,SIGNAL(StrokeUpdate(quint8)),this,SLOT(on_spm_update(quint8)));
+    connect(str,SIGNAL(StrokeUpdate(quint8)),this,SLOT(spm_update(quint8)));
     qDebug() << "MainWindow create";
 }
 
@@ -144,7 +144,7 @@ void MainWindow::on_pB_Off_clicked()
 
 // SPM ANZEIG
 
-void MainWindow::on_spm_update(quint8 spm){
+void MainWindow::spm_update(quint8 spm){
     qDebug() << "Update Spm";
     this->ui->lab_Data_topleft->setText(QString::number(spm));
 }

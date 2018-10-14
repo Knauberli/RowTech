@@ -6,12 +6,14 @@
 // use Burst Read from the SensoR
 
 struct _GyroData;
+class GravityFilter;
 class GyroSensorPrivate :public QObject
 {
     Q_OBJECT
     QString filePath;
     QTimer timer_;
     int filedescriptor;
+    GravityFilter* gv;
     enum _SensorState{
         READY,
         ERROR,
@@ -23,6 +25,7 @@ class GyroSensorPrivate :public QObject
 
     //private Functions
     uchar getRegisterValue(uchar RegisterNumber);
+    uchar* readBurstDataFifo();
     double AccelFactor;
     double GyroFactor;
     void calculateRelativeValues(struct _GyroData *data);

@@ -16,7 +16,7 @@ class GravityFilter : public QObject
 public:
     explicit GravityFilter(QObject *parent = nullptr);
     void setCuttoff(qreal Cuttoff);
-    void setdeltaTime(qreal Deltatime);
+    void setSampleFrequency(qreal Deltatime);
 signals:
 
 public slots:

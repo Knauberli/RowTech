@@ -17,7 +17,7 @@ public:
 signals:
     void updatedOutput(qreal value);
 public slots:
-    void updateInput(GyroData data);
+    void updateInput(GyroData& data);
 };
 
 #endif // MA_FILTER_H

@@ -32,7 +32,7 @@ public:
     void setPollingInterval(quint32 msec);
     virtual ~GyroSensor();
 signals:
-    void newSensorValue(GyroData newValue);// active singal sends new Value with singal
+    void newSensorValue(GyroData &newValue);// active singal sends new Value with singal
     void recivedSensorValue();// passive Singal indicates new Value can be read
 public slots:
 

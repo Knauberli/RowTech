@@ -27,7 +27,8 @@ GyroSensor::~GyroSensor(){
 }
 
 void GyroSensor::readsensorData(){
-    emit this->newSensorValue(this->pri->readData());
+    GyroData data = this->pri->readData();
+    emit this->newSensorValue(data);
 }
 
 void GyroSensor::setPollingInterval(quint32 msec){

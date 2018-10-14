@@ -11,9 +11,9 @@ StrokeDetector::StrokeDetector(QObject *parent) : QObject(parent)
     // generate filter an Gyro sensor and connect them together
     MA_Filter* fil = new MA_Filter(this);
     GyroSensor* sen = new GyroSensor(this);
-    sen->setPollingInterval(5);
+    sen->setPollingInterval(5); // this equals 200Hz
     timer.start();
-    connect(sen,SIGNAL(newSensorValue(GyroData)),fil,SLOT(updateInput(GyroData)));
+    connect(sen,SIGNAL(newSensorValue(GyroData&)),fil,SLOT(updateInput(GyroData&)));
     connect(fil,SIGNAL(updatedOutput(qreal)),this,SLOT(processnewvalue(qreal)));
     this->downSampleVlaues = new RingStorage<qreal>(2);
 
@@ -26,7 +26,7 @@ StrokeDetector::~StrokeDetector(){
 
 void StrokeDetector::rundetection(){
     // if the last element is lower than the element before we passed a minimum
-    qDebug() << this->downSampleVlaues->at(this->downSampleVlaues->size()-1) << this->downSampleVlaues->at(this->downSampleVlaues->size() - 2);
+    // qDebug() << this->downSampleVlaues->at(this->downSampleVlaues->size()-1) << this->downSampleVlaues->at(this->downSampleVlaues->size() - 2);
     // we poi if the dirrection of the verctor changes his sign
     // https://aticleworld.com/5-ways-to-check-if-two-integers-have-opposite-signs/
     // check if the strength is enought for a direction change
