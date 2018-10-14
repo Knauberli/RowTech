@@ -75,12 +75,15 @@ int SetUserSettings(QString Username, int cB_index)
 
     QFile UserSettingsFile(qstrUserFilename);
 
-    if(UserSettingsFile.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text))
+    if(UserSettingsFile.open(QIODevice::ReadWrite | QIODevice::Text))
     {
         QTextStream txtStream(&UserSettingsFile);
         UserSettings = txtStream.readAll();
-        QRegExp rx("[, ]");
+        QRegExp rx(",");
         QStringList list = UserSettings.split(rx, QString::SkipEmptyParts);
+        foreach (QString str, list) {
+            str = str.trimmed();
+        }
         value = list.at(cB_index).toInt();
         UserSettingsFile.close();
         return value;
@@ -108,7 +111,7 @@ void UserSettingsInitSave(QString NameInitDatei, QString LastUser)
     {
         UserSettingsFile.remove();
     }
-    if(UserSettingsFile.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text))
+    if(UserSettingsFile.open(QIODevice::ReadWrite | QIODevice::Text))
     {
         QTextStream txtStream(&UserSettingsFile);
         txtStream << LastUser;
@@ -130,11 +133,11 @@ QString GetInitUser(QString Username)
     QFile UserSettingsFile(qstrUserFilename);
     QString LastUser;
 
-    if(UserSettingsFile.open(QIODevice::ReadOnly | QIODevice::WriteOnly | QIODevice::Text))
+    if(UserSettingsFile.open(QIODevice::ReadWrite | QIODevice::Text))
     {
         QTextStream txtStream(&UserSettingsFile);
         UserSettings = txtStream.readAll();
-        QRegExp rx("[, ]");
+        QRegExp rx(",");
         QStringList list = UserSettings.split(rx, QString::SkipEmptyParts);
         LastUser = list.at(0);
 

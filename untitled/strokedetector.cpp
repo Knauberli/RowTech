@@ -5,7 +5,7 @@
 #include "math.h"
 #define msecs_in_minute 60000
 // just some random factor to avoid noise into the singal
-#define strength_per_stroke 0.8
+#define strength_per_stroke 0.7
 StrokeDetector::StrokeDetector(QObject *parent) : QObject(parent)
 {
     // generate filter an Gyro sensor and connect them together

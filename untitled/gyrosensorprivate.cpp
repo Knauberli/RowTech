@@ -19,11 +19,13 @@
 #include <string.h>
 
 #include "gravityfilter.h"
+
+#define CUTOFF_HIGHPASS 15
 GyroSensorPrivate::GyroSensorPrivate(QObject *parent) : QObject(parent)
 {
     this->SetupI2C();
     this->gv = new GravityFilter(this);
-    this->gv->setCuttoff(0.5);
+    this->gv->setCuttoff(CUTOFF_HIGHPASS);
     this->gv->setSampleFrequency(200);
 }
 GyroSensorPrivate::GyroSensorPrivate(QString devFilepath, QObject *parent):QObject(parent){

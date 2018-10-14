@@ -17,7 +17,7 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
-
+CONFIG+= debug
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
@@ -27,11 +27,27 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    test.cpp
+        # basicio.cpp \
+        gyrosensor.cpp \
+        gyrosensorprivate.cpp \
+        ma_filter.cpp \
+        ma_filter_private.cpp \
+        strokedetector.cpp \
+        gravityfilter.cpp \
+    test.cpp \
+    gps.cpp
 
 HEADERS += \
         mainwindow.h \
-    test.h
+        gyrosensor.h \
+        gyrosensorprivate.h \
+        ma_filter.h \
+        ma_filter_private.h \
+        ringstorage.h \
+        strokedetector.h \
+        gravityfilter.h \
+    test.h \
+    gps.h
 
 FORMS += \
         mainwindow.ui

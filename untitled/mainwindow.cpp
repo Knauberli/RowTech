@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "test.h"
+#include "strokedetector.h"
 
 // Werte für ComboBoxen
 // Müssen in txt Datei ausgelagert werden --> Dann können mehrere Nutzer hinzugefügt werden
@@ -41,23 +42,10 @@ MainWindow::MainWindow(QWidget *parent) :
     UpdateTrainingsdauer = new QTimer(this);
     connect(UpdateTrainingsdauer, SIGNAL(timeout()),this, SLOT(UpdateMeasurementTrainingsdauer()));
 
-    // Bei Start: StandardUser
-    // Werte speichern Button --> schreiben
-    // Werte laden Button --> Auslesen
-    // AddUser --> Userfile mit aktuellen Werten erstellen
-    // AddBoat --> Boot hinzufügen
 
-    // Für jeden User 1 txtFile mit:
-    // 1) Auswahl checkBox, Boot
-
-    // Für alle Boote 1 txtFile --> Kann nur hinzufügen
-
-    // Boottxtfile --> Läd Userdaten des letzten geladenen Users --> Wenn Werte laden, dann hier rein schreiben (init)
-
-    // Lade UserSettings aus InitDatei
-
-    // test
     qDebug() << GetInitUser("InitSettings");
+    StrokeDetector *str = new StrokeDetector(this);// Qt will delete Strokedetector on shutdown hopefully
+    connect(str,SIGNAL(StrokeUpdate(quint8)),this,SLOT(spm_update(quint8)));
 
 
 
@@ -176,4 +164,8 @@ void MainWindow::on_comboBox_5_currentIndexChanged(const QString &arg1)
 void MainWindow::on_pB_SaveSettings_clicked()
 {
     ChangeUserSettings(this->ui->lab_User->text(), this->ui->comboBox_1->currentIndex(), this->ui->comboBox_2->currentIndex(),this->ui->comboBox_3->currentIndex(),this->ui->comboBox_4->currentIndex(),this->ui->comboBox_5->currentIndex(),this->ui->comboBox_6->currentIndex());
+}
+void MainWindow::spm_update(quint8 spm){
+    qDebug() << "Update Spm";
+    this->ui->lab_Data_topleft->setText(QString::number(spm));
 }

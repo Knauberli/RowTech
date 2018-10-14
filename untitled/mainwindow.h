@@ -51,6 +51,7 @@ private slots:
 
     void on_pB_SaveSettings_clicked();
 
+    void spm_update(quint8 spm);
 private:
     Ui::MainWindow *ui;
     QTimer *UpdateTrainingsdauer;
