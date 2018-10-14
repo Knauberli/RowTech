@@ -4,6 +4,11 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QString>
+#include <QStringList>
+#include <QApplication>
+#include <QDateTime>
+#include "test.h"
 
 namespace Ui {
 class MainWindow;
@@ -42,7 +47,9 @@ private slots:
 
     void on_pB_Off_clicked();
 
-    void spm_update(quint8 spm);
+    void on_comboBox_5_currentIndexChanged(const QString &arg1);
+
+    void on_pB_SaveSettings_clicked();
 
 private:
     Ui::MainWindow *ui;

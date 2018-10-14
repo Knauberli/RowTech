@@ -1,20 +1,14 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "strokedetector.h"
-
-#include <QString>
-#include <QStringList>
-#include <QApplication>
-#include <QDateTime>
-
-#include <QDebug>
+#include "test.h"
 
 // Werte für ComboBoxen
 // Müssen in txt Datei ausgelagert werden --> Dann können mehrere Nutzer hinzugefügt werden
 
 QStringList MeasurementType = {"Schlagzahl (spm)","Gesamtdistanz","Distanz pro Schlag","Trainingsdauer","Zeit / 500 Meter", "Split"};
-QStringList Users = {"TestUser","Michael","TestUser 2"};
+QStringList Users = {"TestUser","Michael","TestUser2"};
 QStringList Boats = {"Tigerente","Sprinter","Fun42"};
+QString LastUser;
 
 
 
@@ -23,6 +17,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    // Default User in variable speichern
+    QString DefaultUser;
+    DefaultUser = GetInitUser("InitSettings");
     // ComboBoxen mit Werten füllen
     this->ui->comboBox_1->addItems(MeasurementType);
     this->ui->comboBox_2->addItems(MeasurementType);
@@ -30,25 +27,42 @@ MainWindow::MainWindow(QWidget *parent) :
     this->ui->comboBox_4->addItems(MeasurementType);
     this->ui->comboBox_5->addItems(Users);
     this->ui->comboBox_6->addItems(Boats);
-    // Standardwerte setzen
-    // Müssen später aus Textdatei eingelesen werden
-    this->ui->comboBox_1->setCurrentIndex(0);
-    this->ui->comboBox_2->setCurrentIndex(1);
-    this->ui->comboBox_3->setCurrentIndex(2);
-    this->ui->comboBox_4->setCurrentIndex(3);
-    this->ui->comboBox_5->setCurrentIndex(1);
-    this->ui->comboBox_6->setCurrentIndex(1);
+    // Lade UserSettings
+    this->ui->comboBox_1->setCurrentIndex(SetUserSettings(DefaultUser,0));
+    this->ui->comboBox_2->setCurrentIndex(SetUserSettings(DefaultUser,1));
+    this->ui->comboBox_3->setCurrentIndex(SetUserSettings(DefaultUser,2));
+    this->ui->comboBox_4->setCurrentIndex(SetUserSettings(DefaultUser,3));
+    this->ui->comboBox_5->setCurrentIndex(SetUserSettings(DefaultUser,4));
+    this->ui->comboBox_6->setCurrentIndex(SetUserSettings(DefaultUser,5));
+
 
     // Timer um Trainingsdauer zu Updaten
 
     UpdateTrainingsdauer = new QTimer(this);
     connect(UpdateTrainingsdauer, SIGNAL(timeout()),this, SLOT(UpdateMeasurementTrainingsdauer()));
 
-    StrokeDetector *str = new StrokeDetector(this);// Qt will delete Strokedetector on shutdown hopefully
-    connect(str,SIGNAL(StrokeUpdate(quint8)),this,SLOT(spm_update(quint8)));
-    qDebug() << "MainWindow create";
-}
+    // Bei Start: StandardUser
+    // Werte speichern Button --> schreiben
+    // Werte laden Button --> Auslesen
+    // AddUser --> Userfile mit aktuellen Werten erstellen
+    // AddBoat --> Boot hinzufügen
 
+    // Für jeden User 1 txtFile mit:
+    // 1) Auswahl checkBox, Boot
+
+    // Für alle Boote 1 txtFile --> Kann nur hinzufügen
+
+    // Boottxtfile --> Läd Userdaten des letzten geladenen Users --> Wenn Werte laden, dann hier rein schreiben (init)
+
+    // Lade UserSettings aus InitDatei
+
+    // test
+    qDebug() << GetInitUser("InitSettings");
+
+
+
+
+}
 
 MainWindow::~MainWindow()
 {
@@ -142,9 +156,24 @@ void MainWindow::on_pB_Off_clicked()
 
 }
 
-// SPM ANZEIG
 
-void MainWindow::spm_update(quint8 spm){
-    qDebug() << "Update Spm";
-    this->ui->lab_Data_topleft->setText(QString::number(spm));
+// Wenn sich Userindex ändert -> Laden der Einstellungsdateien des aktuellen Users
+void MainWindow::on_comboBox_5_currentIndexChanged(const QString &arg1)
+{
+    QString SelectedUser;
+    SelectedUser = this->ui->comboBox_5->currentText();
+    // Lade Einstellungen aus UserDatei
+    this->ui->comboBox_1->setCurrentIndex(SetUserSettings(SelectedUser,0));
+    this->ui->comboBox_2->setCurrentIndex(SetUserSettings(SelectedUser,1));
+    this->ui->comboBox_3->setCurrentIndex(SetUserSettings(SelectedUser,2));
+    this->ui->comboBox_4->setCurrentIndex(SetUserSettings(SelectedUser,3));
+    this->ui->comboBox_5->setCurrentIndex(SetUserSettings(SelectedUser,4));
+    this->ui->comboBox_6->setCurrentIndex(SetUserSettings(SelectedUser,5));
+    // Speichere den aktuellen Usernamen in init Datei
+    UserSettingsInitSave("InitSettings", this->ui->comboBox_5->currentText());
+}
+
+void MainWindow::on_pB_SaveSettings_clicked()
+{
+    ChangeUserSettings(this->ui->lab_User->text(), this->ui->comboBox_1->currentIndex(), this->ui->comboBox_2->currentIndex(),this->ui->comboBox_3->currentIndex(),this->ui->comboBox_4->currentIndex(),this->ui->comboBox_5->currentIndex(),this->ui->comboBox_6->currentIndex());
 }
