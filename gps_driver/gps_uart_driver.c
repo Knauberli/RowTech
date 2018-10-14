@@ -28,7 +28,7 @@ static struct task_struct* kernel_thread = NULL;
 static DEFINE_MUTEX(buffer_lock);
 static struct device *charDevice = NULL;
 // IRQ_Number
-static unsigned int irq_falling_endge_Number;
+static unsigned int irq_falling_edge_Number;
 
 static uint8_t opened = 0; // flag indicates if the device is opened
 static int major_number = 0;
@@ -43,13 +43,24 @@ static struct timespec irq_timestamp;
 static void rcv_data(void){
 	//Interrupt will come on the setting the bus to low so we wait one bit time before write tinto the buffer
 	uint8_t data = 0, i = 0;// init variables with 0 
-	struct timespec kthreadtime;
+	struct timespec kthreadtime,timediffrence;
+	unsigned long timetosleep = 0;
+
 	// after the interrrup we are at the beginning of the signal
 	// now wie put our sample point in the middle of the sampling time 
 	//
 	// udlay is more atomic as sleep functions so we used it here 
 	getnstimeofday(&kthreadtime);
-	udelay(BIT_TIME_US*0.6);
+	// calculate the time diffrence
+	timediffrence = timespec_sub(kthreadtime,irq_timestamp);
+	// printk(KERN_DEBUG "Scheduling timediffrence: %ld.%ld", timediffrence.tv_sec,timediffrence.tv_nsec);
+	// calculate the time to sleep for the first bit to get in the middle of the signal
+	// right shift 10 is a division with 1024 which we assume as accurate
+	
+	timetosleep = (BIT_TIME_US >> 1) - (timediffrence.tv_nsec >> 10) ;
+	if(timetosleep > 0){
+		udelay(timetosleep);
+	}
 	for(i = 0; i < 8; i++ ){
 		udelay(BIT_TIME_US);
 		data |= (gpio_get_value(GPS_RX_PIN) << i);
@@ -65,13 +76,17 @@ static int sendFunction(void *data) {
 	while(kthread_should_run){
 		// wait for interrupt
 		wait_event_interruptible(RCV_RQ,interrupt_flag == 1);
-		
+		// disable interrupt for recviveing bacause it's not 
+		// needed an strugle with addition scheduling 
+		disable_irq_nosync(irq_falling_edge_Number);
 		// double ckeck is we get woke up by the removing the module
 		if(interrupt_flag && kthread_should_run){
 			//printk_ratelimited(KERN_DEBUG "Start RX procedure");
 			rcv_data();// make rcev of data
 		}
 		interrupt_flag = 0; // clear the flag and wait for anoter interrpt
+		// after recving enable iterrupt for a new byte an go to sleep/end
+		enable_irq(irq_falling_edge_Number);
 	}
 	// TODO: read the docs if relaxing a static kfifi is nessescary ??
 #if 0
@@ -85,7 +100,7 @@ static int sendFunction(void *data) {
 static irqreturn_t recive_irq_handler(unsigned int irq, void *data){
 	interrupt_flag = 1;
 	getnstimeofday(&irq_timestamp);
-	wake_up_interruptible(&RCV_RQ);
+	wake_up_interruptible_sync(&RCV_RQ);
 	//printk_ratelimited(KERN_DEBUG"IRQ recvied ");
 	
 	return IRQ_HANDLED;
@@ -145,7 +160,7 @@ inline void irq_getting_number_failed(void){
 	gpio_TX_failed();
 }
 inline void chardev_creation_failed(void){
-	free_irq(irq_falling_endge_Number,NULL);
+	free_irq(irq_falling_edge_Number,NULL);
 	irq_getting_number_failed();
 }
 inline void class_creation_failed(void){
@@ -163,18 +178,18 @@ static int __init module_entrence(void){
 	kernel_thread = kthread_run(sendFunction,NULL,"GPS_SENDER");
 	if(IS_ERR(kernel_thread)){
 		kthread_creation_failed();
-		return -1;
+		return -1;// return on Error
 	}
 	if(!gpio_is_valid(GPS_RX_PIN) || !gpio_is_valid(GPS_TX_PIN)){
 		printk(KERN_INFO"GPIO's are not Valid for this Board");
 		kthread_creation_failed();// basicly its the same
-		return -1;
+		return -1;// return on Error
 	}
 	// Lock GPIOS
 	if(gpio_request(GPS_RX_PIN,"sysfs") != 0){
 		printk(KERN_DEBUG"Could not get PIN:%d",GPS_RX_PIN);
 		kthread_creation_failed();
-		return -1;
+		return -1;// return on Error
 	}
 	printk(KERN_DEBUG "Requested %d",GPS_RX_PIN);
 	if(gpio_request(GPS_TX_PIN,"sysfs") != 0){
@@ -187,20 +202,21 @@ static int __init module_entrence(void){
 	gpio_direction_output(GPS_TX_PIN, 1);
 	gpio_direction_input(GPS_RX_PIN);
 	// set irq for the GPIO
-	irq_falling_endge_Number = gpio_to_irq(GPS_RX_PIN);
-	printk(KERN_DEBUG "GET IRQ_MAPPING: %d" ,irq_falling_endge_Number);
-	if(irq_falling_endge_Number < 0 ){
+	irq_falling_edge_Number = gpio_to_irq(GPS_RX_PIN);
+	printk(KERN_DEBUG "GET IRQ_MAPPING: %d" ,irq_falling_edge_Number);
+	if(irq_falling_edge_Number < 0 ){
 		irq_getting_number_failed();
 		return -1;
 	}
-	result = request_irq(irq_falling_endge_Number, (irq_handler_t) recive_irq_handler,IRQF_TRIGGER_FALLING,"GPS_FALLING_EDGE",NULL);
+	// set interrupt service routine(ISR) for interrupt on RX_PIN 
+	result = request_irq(irq_falling_edge_Number, (irq_handler_t) recive_irq_handler,IRQF_TRIGGER_FALLING,"GPS_FALLING_EDGE",NULL);
 	printk(KERN_DEBUG "IRQ_REQUEST_RESULT: %d" ,result);
 	if(result < 0){
 		printk(KERN_DEBUG "IRQ_REQUEST FAILED" );
 		irq_getting_number_failed();
 		return -1;
 	}
-
+	// create special file in dev folder
 	printk(KERN_DEBUG "Register Char Device");
 	if((major_number = register_chrdev(0, DEVICE_NAME, &fops)) < 0){
 		chardev_creation_failed();
@@ -210,7 +226,7 @@ static int __init module_entrence(void){
 		class_creation_failed();
 		return -1;
 	}
-
+	// create deivce with class and driver
 	charDevice = device_create(driver_class, NULL, MKDEV(major_number,0), NULL, CLASS_NAME);
 	if((result = IS_ERR(charDevice))){
 		device_create_failed();
@@ -226,7 +242,7 @@ static int __init module_entrence(void){
 static void __exit module_release(void){
 
 	// Free Irq from the system
-	free_irq(irq_falling_endge_Number,NULL);
+	free_irq(irq_falling_edge_Number,NULL);
 	printk(KERN_DEBUG "free irq");
 
 	// Free the GPIO form this Module
@@ -252,4 +268,4 @@ module_exit(module_release);
 MODULE_LICENSE("GPL");
 MODULE_VERSION("dev");
 MODULE_DESCRIPTION("Simpel Implentation of uart Handling inside the Kernel");
-MODULE_AUTHOR("Bambi");
+MODULE_AUTHOR("Michael");
